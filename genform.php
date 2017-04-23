@@ -84,6 +84,8 @@
 
 		function init() {
 
+			$submitname = $this->id('submit');
+
 			if (isset($_POST[$submitname])) 
 				$this->submitted = True;
 			else
