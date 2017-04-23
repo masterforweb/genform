@@ -1,0 +1,21 @@
+<form action="<?=$action?>" method="<?=$method?>">
+
+<?foreach ($items as $name=>$item):?>
+
+	<p>
+		<label for="label_<?=$name?>"><?=$item['title']?></label>
+				
+		<input type="<?=$item['type']?>" name="<?=$item['name']?>" id="<?=$item['id']?>" class="<?=$item['class']?>" 
+			<?=($item['value'] == '') ? '':' value="'.$item['value'].'"'?>
+			<?=($item['placeholder']) ? ' placeholder="'.$item['placeholder'].'"':''?>
+			<?=($item['required']) ? ' required':''?>>
+
+		<?if (isset($item['error'])):?>
+			<strong class="critical">*<?=$item['error']?></strong>
+		<?endif?>	
+
+	</p>
+	
+<?endforeach?>	
+
+</form>
