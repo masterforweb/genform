@@ -10,6 +10,7 @@
 		var $fields = array();
 		var $method = 'POST';
 		var $template = 'formtemplate.phtml';
+		var $values = array();
 
 				
 		function table($table){
@@ -58,17 +59,27 @@
 			return $this;
 		}
 
-		function value($key){
+		function value($name){
 			
-			$id = $this->id($key);
+			if (isset($this->fields[$name]))
+				return $this->fields[$name]['value'];
 			
-			if (isset($_POST[$id])) {
-				return $_POST[$id];
-			}
-		
 			return null;
 
 		}	
+
+
+		//возвращает все значения
+		function values() {
+			
+			foreach ($this->fields as $name=>$field) {
+				if ($field['type'] !== 'submit')
+					$value[$name] =  $field['value'];
+			}
+
+			return $value;
+
+		}
 
 
 		/* проверяет валидна ли форма */
@@ -103,12 +114,13 @@
 
 				if (isset($_POST[$id])) {
 					$value = trim($_POST[$id]);
-					$this->fields[$name]['value'] = $value;
 				}
 				elseif (isset($item['value']))
 					$value = $item['value'];
 
+				$this->fields[$name]['value'] = $value;
 
+				
 				$currname = mb_strtolower(trim($name));
 				
 				if (!isset($item['type'])) {
