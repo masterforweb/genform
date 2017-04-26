@@ -117,10 +117,10 @@
 				}
 				elseif (isset($item['value']))
 					$value = $item['value'];
+				else
+					$value = '';
 
-				$this->fields[$name]['value'] = $value;
-
-				
+								
 				$currname = mb_strtolower(trim($name));
 				
 				if (!isset($item['type'])) {
@@ -140,6 +140,12 @@
 				else
 					$type = $item['type'];	
 
+				if ($value !== '') {
+					if ($type == 'password')
+						$value = md5($value);
+				}
+
+				$this->fields[$name]['value'] = $value;
 				$this->fields[$name]['class'] = $this->prefix.$type; 
 
 								
