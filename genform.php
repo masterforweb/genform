@@ -161,19 +161,32 @@
 
 		}
 
+		/* render template */
+		function viewform($render = False) {
+			
+			if ($render){
+				ob_start();
+				$this->render();
+				$result = ob_get_contents();
+				ob_end_clean();
+				return $result;
+			}
+			else
+				$this->render();
+		}
+
 		
 		/* render template */
-		function viewform() {
-			
-			/* vars to template */
+		function render() {
+
 			$items = $this->fields;
 			$action = $this->getUrl();
 			$submitted = $this->submitted;
 			$method = $this->method;
 
 			include $this->template;
-
 		}
+
 
 		function id($key) {
 			return $this->prefix.$key;
