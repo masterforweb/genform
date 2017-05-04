@@ -97,7 +97,7 @@
 
 			$submitname = $this->id('submit');
 
-			if (isset($_POST[$submitname])) 
+			if( $_POST )
 				$this->submitted = True;
 			else
 				$this->submitted = False;
