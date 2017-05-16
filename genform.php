@@ -8,14 +8,27 @@
 		var $valid = True;
 		var $submitted = False;
 		var $fields = array();
+		var $errors = array();
 		var $method = 'POST';
 		var $template = 'formtemplate.phtml';
 		var $values = array();
+		var $table = null; //таблица
+		var $conn = null; // connect к базе
+		var $current_id = 0;
+		var $increment = '';
+
 
 				
-		function table($table){
+		function table($table, $conn = ''){
 			$this->table = $table;
+			$this->conn = $conn;
 			return $this;
+		}
+
+		function increment($value){
+			$this->increment = $value;
+			return $this;
+
 		}
 
 		function fields($fields = array()){
@@ -25,6 +38,7 @@
 		}
 
 
+		
 		function action($url) {
 			$this->url = $url;
 			return $this;
@@ -56,9 +70,11 @@
 		/*добавляем ошибку*/
 		function adderror($key, $error = 'Error field'){
 			$this->fields[$key]['error'] = $error;
+			$this->valid = False;
 			return $this;
 		}
 
+		
 		function value($name){
 			
 			if (isset($this->fields[$name]))
@@ -93,14 +109,54 @@
 			return $this->submitted;
 		}
 
+		function save() {
+			 
+			if ($this->table == '')
+			 	return False;
+
+			foreach ($this->fields as $name=>$item) {
+				if ($item['type'] !== 'submit' and $item['type'] !== 'confirm_password')
+					$add[$name] = $item['value'];
+			}
+
+			if ($current_id == 0) {
+				return Table($this->table, $this->conn)->array2insert($add);
+			}
+			else {
+				return Table($this->table, $this->conn)->update($add);
+			}
+
+
+		}
+
+		
+		function valuestable(){
+			
+			//if ($this->table !== '' and $this->current_id > 0) {
+				
+			//}
+
+			//return $result;
+		}
+
+
+		function findunique($column, $value){
+			
+			return Table($this->table)->where($column, $value)->searched();
+			
+		}
+
+
 		function init() {
 
 			$submitname = $this->id('submit');
 
 			if( $_POST )
 				$this->submitted = True;
-			else
+			else {
 				$this->submitted = False;
+				
+			}
 
 
 			foreach ($this->fields as $name=>$item) {
@@ -117,13 +173,15 @@
 				}
 				elseif (isset($item['value']))
 					$value = $item['value'];
-				else
+				else {
+					
 					$value = '';
+				}
 
 								
 				$currname = mb_strtolower(trim($name));
 				
-				if (!isset($item['type'])) {
+				if (!isset($item['type'])) { //autogeneration type
 					
 					if ($currname == 'email')
 						$type = 'email';
@@ -137,28 +195,57 @@
 					$this->fields[$name]['type'] = $type;
 
 				}
+				else if ($item['type'] == 'save') {
+						$type = 'submit';
+				}
+				else if ($item['type'] == 'confirm_password') {
+					$type = 'password';
+				}	
 				else
 					$type = $item['type'];	
 
-				if ($value !== '') {
-					if ($type == 'password')
+				/*if ($value !== '') {
+					if ($type == 'password' or $type == 'confirm_password')
 						$value = md5($value);
-				}
+				}*/
 
 				$this->fields[$name]['value'] = $value;
 				$this->fields[$name]['class'] = $this->prefix.$type; 
 
 								
 				/* валидация обязательного поля*/
-				if ($this->submitted and $item['required']) {
+				if ($this->submitted) {
 
-					if ($value == ''){
+					if ($item['required'] and $value == '') {
 						$this->valid = False;
-						$this->fields[$name]['error'] = 'zero field';
+						$this->adderror($name, 'zero field');
+					}
+					
+					elseif ($item['unique']) {
+						if ($this->findunique($name, $value)) {
+							$this->adderror($name, 'record already exists');
+						}
 					}
 
+					if ($item['type'] == 'confirm_password') {
+						
+						if ($parent = $item['parent']) {
+
+							if ($this->fields[$parent]['value'] !== $value) {
+								$this->adderror($parent, 'пароли не совпадают');
+								$this->adderror($name, 'пароли не совпадают');
+							}
+
+						}
+
+					}
+
+
+
+
 				}
-				
+
+			
 			}
 
 
@@ -182,6 +269,7 @@
 		}
 
 		
+
 		/* render template */
 		function render() {
 
