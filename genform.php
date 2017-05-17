@@ -11,7 +11,7 @@
 		var $errors = array();
 		var $method = 'POST';
 		var $template = 'formtemplate.phtml';
-		var $values = array();
+		var $values = array(); //данные полученные из базы для сравнения
 		var $table = null; //таблица
 		var $conn = null; // connect к базе
 		var $current_id = 0;
@@ -30,6 +30,21 @@
 			return $this;
 
 		}
+
+		function current_id($value){
+			
+			$this->current_id = $value;
+			
+			$result = Table($this->table, $this->connect)->where($this->increment, $value)->one();
+			
+			if (is_array($result)) 
+				$this->values = $result;
+
+			return $this;
+		}
+
+		
+
 
 		function fields($fields = array()){
 			$this->fields = $fields;
@@ -76,12 +91,12 @@
 
 		
 		function value($name){
-			
-			if (isset($this->fields[$name]))
-				return $this->fields[$name]['value'];
-			
-			return null;
 
+			
+			//if (isset($this->fields[$name]))
+				
+				return $this->fields[$name]['value'];
+		
 		}	
 
 
@@ -93,9 +108,13 @@
 					$value[$name] =  $field['value'];
 			}
 
+
 			return $value;
 
 		}
+
+
+
 
 
 		/* проверяет валидна ли форма */
@@ -119,11 +138,14 @@
 					$add[$name] = $item['value'];
 			}
 
-			if ($current_id == 0) {
+
+			if ($this->current_id == 0) {
+				echo 'INSERT';
 				return Table($this->table, $this->conn)->array2insert($add);
 			}
 			else {
-				return Table($this->table, $this->conn)->update($add);
+				echo 'INSERT';
+				return Table($this->table, $this->conn)->where($this->increment, $this->current_id)->update($add);
 			}
 
 
@@ -141,9 +163,22 @@
 
 
 		function findunique($column, $value){
+
+			$unique = Table($this->table)->where($column, $value)->one();
+
+			if (!is_array($unique))
+				return False;
 			
-			return Table($this->table)->where($column, $value)->searched();
+			if(isset($this->values[$this->increment])){
+			  	if ($this->values[$this->increment] == $unique[$this->increment])
+					return False;
+				else
+					return True;
+			}
+			else
+				return True; 
 			
+		
 		}
 
 
@@ -154,9 +189,8 @@
 			if( $_POST )
 				$this->submitted = True;
 			else {
-				$this->submitted = False;
-				
-			}
+				$this->submitted = False;			
+			}	
 
 
 			foreach ($this->fields as $name=>$item) {
@@ -171,13 +205,17 @@
 				if (isset($_POST[$id])) {
 					$value = trim($_POST[$id]);
 				}
+				elseif(isset($this->values[$name])){
+					$value = $this->values[$name];
+				}
 				elseif (isset($item['value']))
 					$value = $item['value'];
-				else {
-					
+				else {	
 					$value = '';
 				}
 
+
+				$this->fields[$name]['value'] = $value;
 								
 				$currname = mb_strtolower(trim($name));
 				
@@ -204,12 +242,16 @@
 				else
 					$type = $item['type'];	
 
-				/*if ($value !== '') {
+				if ($value !== '') {
 					if ($type == 'password' or $type == 'confirm_password')
 						$value = md5($value);
-				}*/
+						$this->fields[$name]['value'] = $value;			
+					}
+				}
 
-				$this->fields[$name]['value'] = $value;
+				
+
+				
 				$this->fields[$name]['class'] = $this->prefix.$type; 
 
 								
@@ -245,8 +287,6 @@
 
 				}
 
-			
-			}
 
 
 			return;
