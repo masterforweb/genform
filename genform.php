@@ -140,11 +140,9 @@
 
 
 			if ($this->current_id == 0) {
-				echo 'INSERT';
 				return Table($this->table, $this->conn)->array2insert($add);
 			}
 			else {
-				echo 'INSERT';
 				return Table($this->table, $this->conn)->where($this->increment, $this->current_id)->update($add);
 			}
 
@@ -168,6 +166,8 @@
 
 			if (!is_array($unique))
 				return False;
+
+		
 			
 			if(isset($this->values[$this->increment])){
 			  	if ($this->values[$this->increment] == $unique[$this->increment])
@@ -188,13 +188,12 @@
 
 			if( $_POST )
 				$this->submitted = True;
-			else {
+			else
 				$this->submitted = False;			
-			}	
+			
 
 
 			foreach ($this->fields as $name=>$item) {
-
 				
 				$id = $this->id($name);
 
@@ -202,20 +201,18 @@
 				$this->fields[$name]['name'] =  $id;
 							
 
-				if (isset($_POST[$id])) {
+				if (isset($_POST[$id]))
 					$value = trim($_POST[$id]);
-				}
-				elseif(isset($this->values[$name])){
+	
+				elseif(isset($this->values[$name]))
 					$value = $this->values[$name];
-				}
+			
 				elseif (isset($item['value']))
 					$value = $item['value'];
-				else {	
+				else 
 					$value = '';
-				}
+				
 
-
-				$this->fields[$name]['value'] = $value;
 								
 				$currname = mb_strtolower(trim($name));
 				
@@ -245,11 +242,9 @@
 				if ($value !== '') {
 					if ($type == 'password' or $type == 'confirm_password')
 						$value = md5($value);
-						$this->fields[$name]['value'] = $value;			
-					}
 				}
 
-				
+				$this->fields[$name]['value'] = $value;	
 
 				
 				$this->fields[$name]['class'] = $this->prefix.$type; 
@@ -257,6 +252,8 @@
 								
 				/* валидация обязательного поля*/
 				if ($this->submitted) {
+
+			
 
 					if ($item['required'] and $value == '') {
 						$this->valid = False;
@@ -282,10 +279,9 @@
 
 					}
 
+				}	
 
-
-
-				}
+			}
 
 
 
