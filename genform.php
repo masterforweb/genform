@@ -114,9 +114,6 @@
 		}
 
 
-
-
-
 		/* проверяет валидна ли форма */
 		function isValid(){
 			return $this->valid;	
@@ -128,17 +125,26 @@
 			return $this->submitted;
 		}
 
+		
 		function save() {
 			 
 			if ($this->table == '')
 			 	return False;
 
 			foreach ($this->fields as $name=>$item) {
-				if ($item['type'] !== 'submit' and $item['type'] !== 'confirm_password')
-					$add[$name] = $item['value'];
+				if ($item['type'] !== 'submit' and $name !== 'confirm_password'){
+										
+					if ($item['type'] == 'password')
+						$value = md5($item['value']);
+					else
+						$value =  $item['value'];
+					
+					$add[$name] = $value;
+				}
 			}
 
-
+	
+			
 			if ($this->current_id == 0) {
 				return Table($this->table, $this->conn)->array2insert($add);
 			}
@@ -191,8 +197,6 @@
 			else
 				$this->submitted = False;			
 			
-
-
 			foreach ($this->fields as $name=>$item) {
 				
 				$id = $this->id($name);
@@ -211,10 +215,10 @@
 					$value = $item['value'];
 				else 
 					$value = '';
-				
 
 								
 				$currname = mb_strtolower(trim($name));
+				
 				
 				if (!isset($item['type'])) { //autogeneration type
 					
@@ -224,29 +228,18 @@
 						$type = 'password';
 					elseif ($currname == 'submit')
 						$type = 'submit';
+					elseif ($currname == 'confirm_password') {
+						$type = 'password';
+					}
 					else
 						$type = 'text';
 
 					$this->fields[$name]['type'] = $type;
 
 				}
-				else if ($item['type'] == 'save') {
-						$type = 'submit';
-				}
-				else if ($item['type'] == 'confirm_password') {
-					$type = 'password';
-				}	
-				else
-					$type = $item['type'];	
-
-				if ($value !== '') {
-					if ($type == 'password' or $type == 'confirm_password')
-						$value = md5($value);
-				}
+				
 
 				$this->fields[$name]['value'] = $value;	
-
-				
 				$this->fields[$name]['class'] = $this->prefix.$type; 
 
 								
@@ -268,21 +261,19 @@
 
 					if ($item['type'] == 'confirm_password') {
 						
-						if ($parent = $item['parent']) {
+						if (isset($item['parent'])) {
 
 							if ($this->fields[$parent]['value'] !== $value) {
 								$this->adderror($parent, 'пароли не совпадают');
 								$this->adderror($name, 'пароли не совпадают');
 							}
-
-						}
-
+						}	
+					
 					}
 
 				}	
 
 			}
-
 
 
 			return;
